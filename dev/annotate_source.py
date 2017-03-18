@@ -136,7 +136,7 @@ class Annotator(object):
   """
 
   # regex for 'version-X.Y.Z' versions
-  TAG_MATCHER = re.compile('^version-[0-9]+\.[0-9]+\.[0-9]+$')
+  TAG_MATCHER = re.compile('^version-[0-9]+\.[0-9]+\.[0-9]+-[0-9]+$')
 
   def __init__(self, options, path=None):
     self.__next_tag = options.next_tag
@@ -213,8 +213,8 @@ class Annotator(object):
       # This tag is for logical identification for developers. This will be pushed
       # to the upstream git repository if we choose to use this version in a
       # formal Spinnaker product release.
-      run_quick('git -C {path} tag {next_tag} HEAD'
-                .format(path=self.path, next_tag=version_bump.version_str))
+      run_quick('git -C {path} tag {next_tag}-{build} HEAD'
+                .format(path=self.path, next_tag=version_bump.version_str, build=self.build_number))
       self.__tag_head_with_build(version_bump.version_str)
       return version_bump
 
@@ -339,7 +339,8 @@ class Annotator(object):
     first_dash_idx = curr_version.tag.index('-')
     if first_dash_idx == -1:
       raise GitTagMissingException("No version tags of the form 'version-X.Y.Z'.")
-    major, minor, patch = curr_version.tag[first_dash_idx + 1:].split('.')
+    major, minor, patch_build = curr_version.tag[first_dash_idx + 1:].split('.')
+    patch = patch_build.split('-')[0]
 
     # TODO(jacobkiefer): Fail if changelog conventions aren't followed?
     while commit is not None and commit.hash != curr_version.hash:
