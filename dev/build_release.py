@@ -241,7 +241,7 @@ class Builder(object):
           'Build/publishing container image for {name} with'
           ' Google Container Builder...'.format(name=name),
           'cd "{gradle_root}"'
-          '; gcloud container builds submit --account={account} --project={project} --config="../{name}-gcb.yml" .'
+          '; gcloud container builds submit --gcs-log-dir="" --account={account} --project={project} --config="../{name}-gcb.yml" .'
         .format(gradle_root=gradle_root, name=name, account=self.__gcb_service_account,
                 project=self.__options.gcb_project)
       )
