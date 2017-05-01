@@ -42,7 +42,7 @@ def main():
   changelog_publisher.publish_changelog()
 
   bom_publisher.push_branch_and_tags()
-  bom_publisher.publish_release_bom()
+  # bom_publisher.publish_release_bom()
 
 
 if __name__ == '__main__':
