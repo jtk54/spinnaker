@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: halyard-k8s
+  labels:
+    app: halyard
+spec:
+  restartPolicy: Never
+  containers:
+    - name: halyard-k8s
+      image: index.docker.io/jtk54/halyard-k8s
+      env:
+        - name: KUBE_CONF
+          valueFrom:
+            secretKeyRef:
+              name: kubeconfig
+              key: config.json
+        - name: BUILD_PROJECT
+          valueFrom:
+            secretKeyRef:
+              name: buildproject
+              key: buildproject
+        - name: BUILD_KEY
+          valueFrom:
+            secretKeyRef:
+              name: buildkey
+              key: build.json
+        - name: DOCKER_KEY
+          valueFrom:
+            secretKeyRef:
+              name: dockerkey
+              key: market.json
+        - name: GCS_BUCKET
+          valueFrom:
+            secretKeyRef:
+              name: gcsbucket
+              key: gcsbucket
+        - name: JENKINS_ADDRESS
+          valueFrom:
+            secretKeyRef:
+              name: jenkinsaddress
+              key: jenkinsaddress
+        - name: JENKINS_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: jenkinsuser
+              key: jenkinsuser
+        - name: JENKINS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: jenkinspassword
+              key: jenkinspassword

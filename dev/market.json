@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "spinnaker-marketplace",
+  "private_key_id": "fbecbb9c2c9acd2f7a3e5548c03175e35769f6a2",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCaqCOd/tbsqdX+\nfWsGmfGO2PfCqZv6LgxgAMaqf1OjKV81wXBlJgyWyZC9ZGm5Cwi+66EhM5FiyDA8\niEeVUzv+d/inXBNWWaSPOO7cqVJc3Oo6Gy4wHCkxnKuaV6fIJ6Iq1frUrBgFXkqH\ndNPZDmxR524x+dySat49/E6196vSRAzsiIOUn8IOjh3w/nB2dvZvQ8pFZaqQrzPq\n/6GyMaqQxICKhWgyuDsw8Wb+VfHAqk0m9Jg2pmeE37v2DBQQlcyd6dCJyGj7xU5P\nSdAhnQn2+paPJklYgi5Is6w20FVuSaqbKTA0JUqOwabdyI64Zb6Lud6vucdzWDQc\n7G8nyGKlAgMBAAECggEADVN1ljSSMlxD+yS1ZyE2pjddyeExdnInUNJgS+qiu0li\nUdB0LdMEfK2rkhYn4fDodQL6pFC8M0XKmjyn5l8AqWGPBGSzqdoZitm+Azd3yFak\nvBMBfNXAWu0EAE2TQHThzU0YyuB1RWklhNx1MJvEi54kaZv8/ITG15J4+cb4gCqI\noV4zlzwNilJ4fKo6kbJR2dHuTeJpNsfoyS0sUN9odPuZSJEKUFjMYLiz6QrJ9n7y\n0jHc82aPR0Cfu6Cho/E5oCoKRcDUM3+CUdeVJ9lOZhPoV1NI2vYV9aQvaDJx1vBx\nwFkDxTtlLfOdVt37M70FKNHYuCWOu85dYjmL0Iu8QQKBgQDMG68hpV4j+0jYMXQj\nOfLbNV0DTzTRUvW8hPHOs72qqzmFz1jG7PeiN22BgoS4JyhhvlRhR/6y466l9vj+\ncDOV1AwtLKghZ5eGGwxLP8HqqUYWZTrKwZPK790CKTdStD9SphckUOLvZ643Nyr4\nm+Sx42Dtf9RTfYcGG1pqpNFzNQKBgQDB+e3gFCyXwcKJ1VvS7d3u4iUmn9fDYasp\nGnBnJIvI7zJLX1vT8CgyofjUORl8oqs/54eL4Dc/OT7p1HG6tMo6twWl6W3720Z/\nSpgkNgUXFKlIwVoOMiglnWBud5hInTH6txB/7lvFCWRAzJc8i2FpPIsaK04WvMhg\nWGNG1K0vsQKBgAFhMobcsk019qEXfHx8eMrIio9qKqY7lFOo5mWKS37q12GzLBt0\nIJxlGYVll3YTNa+rdLCPpwYYieavS7GUmpSpsUdg5OYM6DZM2oFrtejbKhEesA4M\nzu3xPyIzmx8g/siVPNTPAymxHrla0xyJGTummNIiKhJCZ/Y/mxXbdVr9AoGANBGa\nwOOpdLMWPVmAZIZlZJJf1pZhnJjDES1/rrAota8/mOvoAmQc5jqESLNrHAGuZmEI\nCYwOSHJdaPcV8EBHaKtoYLjgRRL/QXwMiuvVQfTR3C3KtrTQAgjUsdJ4lkVb/SjW\nzQB2sdVri9lfX2kqpM0TqdqmA4R5ZSNUwtakBoECgYBt/l5lguoLOr7tXZ/E4nKE\ndBNud6nXoIESlpHQ0LvOvu5T5Ob30UMKswhKbFmGmJ9wgmrOOIsDKvv2mITdBUe7\n8nCp2x7suXQ84f3qI6hIgGF5on3w1q9wUl5NJpFxghtCWBSVG0O4FYwUr+3L4RPQ\nnpPTZSivGbgVHE1l0NltUQ==\n-----END PRIVATE KEY-----\n",
+  "client_email": "bom-writer@spinnaker-marketplace.iam.gserviceaccount.com",
+  "client_id": "109313848115461068185",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://accounts.google.com/o/oauth2/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/bom-writer%40spinnaker-marketplace.iam.gserviceaccount.com"
+}

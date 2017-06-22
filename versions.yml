@@ -1,0 +1,16 @@
+latest: 0.6.0
+latestHalyard: 0.19.0
+latestSpinnaker: 0.6.0
+versions:
+- version: 0.4.2
+  alias: Sunfish
+  changelog: https://gist.github.com/spinnaker-release/49d29690e67ceadf9f085d5a52a923e3
+- version: 0.5.0
+  alias: Tenacious Potemkin
+  changelog: https://gist.github.com/spinnaker-release/e6611528dbe0e6f87daf4cd579f4fffa
+  lastUpdate: 1495483332727
+- version: 0.6.0
+  alias: Pixel
+  changelog: https://gist.github.com/spinnaker-release/9cd8fd9363f8ab3fec8c50790ca3710b
+  lastUpdate: 1496243499305
+illegalVersions: []
