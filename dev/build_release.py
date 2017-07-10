@@ -344,23 +344,48 @@ class Builder(object):
     """
     gradle_root = self.determine_gradle_root(name)
     if self.__options.container_builder == 'gcb':
-      # Local .gradle dir stomps on GCB's .gradle directory when the gradle
-      # wrapper is installed, so we need to delete the local one.
-      # The .gradle dir is transient and will be recreated on the next gradle
-      # build, so this is OK.
-      gradle_cache = '{name}/.gradle'.format(name=name)
-      if os.path.isdir(gradle_cache):
-        # Tell rmtree to delete the directory even if it's non-empty.
-        shutil.rmtree(gradle_cache)
-      return BackgroundProcess.spawn(
-          'Build/publishing container image for {name} with'
+      # EXPERIMENT
+      if name == 'gate':
+        gradle_cache = '{name}/.gradle'.format(name=name)
+        if os.path.isdir(gradle_cache):
+          # Tell rmtree to delete the directory even if it's non-empty.
+          shutil.rmtree(gradle_cache)
+        print 'Running mad scientist experiment...'
+        tag = '1.2.3-{}'.format(self.__options.build_number)
+        cmd_lines = [
+          'git -C {} remote add mirror git@github.com:spinnaker-release/{}.git'.format(name, name),
+          'git -C {} fetch mirror'.format(name),
+          'git -C {} checkout mirror/master'.format(name),
+          'git -C {} merge origin/master '.format(name),
+          'git -C {} push mirror master'.format(name),
+          'git -C {} tag {}'.format(name, tag),
+          'git -C {} push mirror {}'.format(name, tag)
+        ]
+        cmd = '; '.join(cmd_lines)
+        return BackgroundProcess.spawn(
+          'Build/publishing container image experiment for {name} with'
           ' Google Container Builder...'.format(name=name),
-          'cd "{gradle_root}"'
-          '; gcloud container builds submit --account={account} --project={project} --config="../{name}-gcb.yml" .'
-        .format(gradle_root=gradle_root, name=name, account=self.__gcb_service_account,
-                project=self.__options.gcb_project),
-        logfile='{name}-gcb-build.log'.format(name=name)
-      )
+          cmd,
+          logfile='{name}-gcb-experiment-build.log'.format(name=name)
+        )
+      else:
+        # Local .gradle dir stomps on GCB's .gradle directory when the gradle
+        # wrapper is installed, so we need to delete the local one.
+        # The .gradle dir is transient and will be recreated on the next gradle
+        # build, so this is OK.
+        gradle_cache = '{name}/.gradle'.format(name=name)
+        if os.path.isdir(gradle_cache):
+          # Tell rmtree to delete the directory even if it's non-empty.
+          shutil.rmtree(gradle_cache)
+          return BackgroundProcess.spawn(
+            'Build/publishing container image for {name} with'
+            ' Google Container Builder...'.format(name=name),
+            'cd "{gradle_root}"'
+            '; gcloud container builds submit --account={account} --project={project} --config="../{name}-gcb.yml" .'
+            .format(gradle_root=gradle_root, name=name, account=self.__gcb_service_account,
+                    project=self.__options.gcb_project),
+            logfile='{name}-gcb-build.log'.format(name=name)
+          )
     elif self.__options.container_builder == 'docker':
       return BackgroundProcess.spawn(
           'Build/publishing container image for {name} with Docker...'.format(
@@ -630,7 +655,7 @@ class Builder(object):
       weighted_processes = self.__options.cpu_ratio * multiprocessing.cpu_count()
       pool = multiprocessing.pool.ThreadPool(
         processes=int(max(1, weighted_processes)))
-      pool.map(self.__do_container_build, subsystems)
+      pool.map(self.__do_container_build, ['gate'])
 
     if self.__build_failures:
       if set(self.__build_failures).intersection(set(subsystems)):
@@ -773,7 +798,7 @@ class Builder(object):
     if options.pull_origin:
         builder.refresher.pull_all_from_origin()
 
-    builder.build_packages()
+    # builder.build_packages()
     if container_builder:
       builder.build_container_images()
 
