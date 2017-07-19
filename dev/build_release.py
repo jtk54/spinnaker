@@ -221,10 +221,10 @@ class Builder(object):
     if options.gradle_cache_path:
       extra_args.append('--gradle-user-home={}'.format(options.gradle_cache_path))
 
-    if (not self.__options.run_unit_tests or
+    if (not options.run_unit_tests or
             (name == 'deck' and not 'CHROME_BIN' in os.environ)):
       extra_args.append('-x test')
-      
+
     if name == 'halyard':
       extra_args.append('-PbintrayPackageDebDistribution=trusty-nightly')
 
@@ -296,7 +296,7 @@ class Builder(object):
     if options.gradle_cache_path:
       extra_args.append('--gradle-user-home={}'.format(options.gradle_cache_path))
 
-    if (not self.__options.run_unit_tests or
+    if (not options.run_unit_tests or
             (name == 'deck' and not 'CHROME_BIN' in os.environ)):
       extra_args.append('-x test')
 
@@ -675,6 +675,7 @@ class Builder(object):
       try:
         self.start_deb_build(subsys)
       except Exception as ex:
+        print ex
         self.__build_failures.append(subsys)
     elif self.__options.platform == 'redhat':
       try:
