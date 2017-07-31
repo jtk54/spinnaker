@@ -374,8 +374,10 @@ class Builder(object):
       # Tell rmtree to delete the directory even if it's non-empty.
       shutil.rmtree(gradle_cache)
     cmds = [
+      'ls -laR /home/jenkins/.config/gcloud/logs || true',
       ('gcloud container builds submit --account={account} --project={project} --config="../{name}-gcb.yml" .'
-       .format(name=name, account=gcb_service_account, project=gcb_project))
+       .format(name=name, account=gcb_service_account, project=gcb_project)),
+      'ls -laR /home/jenkins/.config/gcloud/logs || true'
     ]
     logfile = '{name}-gcb-build.log'.format(name=name)
     if os.path.exists(logfile):
@@ -486,7 +488,7 @@ class Builder(object):
 
   @classmethod
   def __jar_build(cls, name, gradle_root):
-    version = run_quick('cat {name}-component-version.yml'.format(name=name), 
+    version = run_quick('cat {name}-component-version.yml'.format(name=name),
                         echo=False).stdout.strip()
     cmds = [
       './release/all.sh {version} nightly'.format(version=version),
@@ -914,6 +916,7 @@ class Builder(object):
 
   @classmethod
   def do_build(cls, options, build_number=None, container_builder=None, sync_branch=None):
+    print 'do_build: {}'.format(datetime.datetime.now())
     if options.build and not (options.bintray_repo):
       sys.stderr.write('ERROR: Missing a --bintray_repo')
       return -1
@@ -929,13 +932,16 @@ class Builder(object):
         builder.refresher.pull_all_from_origin()
 
     print "Starting JAR build..."
+    print 'starting jar build: {}'.format(datetime.datetime.now())
     builder.build_jars()
 
     print "Starting package build..."
+    print 'starting package build: {}'.format(datetime.datetime.now())
     builder.build_packages()
 
     if container_builder:
       print "Starting container build..."
+      print 'starting container build: {}'.format(datetime.datetime.now())
       builder.build_container_images()
 
     if options.build and options.bintray_repo:

@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import argparse
+import datetime
 import os
 import sys
 
@@ -75,10 +76,14 @@ def main():
   options = parser.parse_args()
 
   bom_generator = BomGenerator(options)
+  print 'determine and tag version: {}'.format(datetime.datetime.now())
   bom_generator.determine_and_tag_versions()
+  print 'determine and tag halyard version: {}'.format(datetime.datetime.now())
   halyard_bump = bom_generator.determine_and_tag_halyard()
+  print 'write component version files: {}'.format(datetime.datetime.now())
   bom_generator.write_component_version_files()
   if options.container_builder == 'gcb':
+    print 'write gcb config: {}'.format(datetime.datetime.now())
     bom_generator.write_container_builder_gcr_config()
   elif options.container_builder == 'gcb-trigger':
     bom_generator.write_gcb_trigger_version_files()
@@ -87,11 +92,14 @@ def main():
   else:
     raise NotImplementedError('container_builder="{0}"'
                               .format(options.container_builder))
+  print 'do dat build: {}'.format(datetime.datetime.now())
   Builder.do_build(options, build_number=options.build_number,
                    container_builder=options.container_builder,
                    sync_branch=options.branch)
   # Load version information into memory and write BOM to disk. Don't publish yet.
+  print 'write bom: {}'.format(datetime.datetime.now())
   bom_generator.write_bom()
+  print 'publish configs: {}'.format(datetime.datetime.now())
   bom_generator.publish_microservice_configs()
   __record_halyard_nightly_version(halyard_bump, options)
   bom_generator.publish_boms()
