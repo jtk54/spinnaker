@@ -362,15 +362,25 @@ class Builder(object):
     self.__jar_build(name, gradle_root)
 
   @classmethod
-  def __gcb_build(cls, name, gradle_root, gcb_service_account, gcb_project):
-    # Local .gradle dir stomps on GCB's .gradle directory when the gradle
-    # wrapper is installed, so we need to delete the local one.
-    # The .gradle dir is transient and will be recreated on the next gradle
-    # build, so this is OK.
+  def __rm_local_gradle_cache(cls, name):
+    """Removes the component's local gradle cache to prepare for a docker build.
+
+    Local .gradle dir stomps on Docker's/GCB's .gradle directory when the gradle
+    wrapper is installed, so we need to delete the local one.
+    The .gradle dir is transient and will be recreated on the next gradle
+    build, so this is OK.
+
+    Args:
+      name [string]: Component name.
+    """
     gradle_cache = '{name}/.gradle'.format(name=name)
     if os.path.isdir(gradle_cache):
       # Tell rmtree to delete the directory even if it's non-empty.
       shutil.rmtree(gradle_cache)
+
+  @classmethod
+  def __gcb_build(cls, name, gradle_root, gcb_service_account, gcb_project):
+    cls.__rm_local_gradle_cache(name)
     cmds = [
       ('gcloud container builds submit --log-http'
        ' --account={account} --project={project} --config="../{name}-gcb.yml" .'
@@ -473,15 +483,33 @@ class Builder(object):
 
   @classmethod
   def __docker_build(cls, name, gradle_root):
-    docker_tag = run_quick('cat {name}-docker.yml', echo=False).stdout.strip()
-    cmds = [
-      'docker build -f Dockerfile -t {docker_tag} .'.format(name=name, docker_tag=docker_tag),
-      'docker push {docker_tag}'.format(name=name, docker_tag=docker_tag)
-    ]
+    cls.__rm_local_gradle_cache(name)
+    docker_tag = run_quick('cat {name}-docker.yml'.format(name=name), echo=False).stdout.strip()
+
+    cmds = []
+    cwd = gradle_root
+    dockerfile = 'Dockerfile'
+
+    if name == 'spinnaker-monitoring':
+      cwd = '{gradle_root}/spinnaker-monitoring-daemon'.format(gradle_root=gradle_root)
+    else:
+      # Utilize Dockerfile.slim to make our artifacts lightweight.
+      cmds.append('COMMIT=$(git rev-parse HEAD)')
+      cmds.append('git checkout $COMMIT')
+      if name == 'deck':
+        cmds.append('./gradlew build -PskipTests')
+      else:
+        cmds.append('./gradlew {0}-web:installDist -x test'.format(name))
+      dockerfile = 'Dockerfile.slim'
+
+    cmds.append('docker build -f {dockerfile} -t {docker_tag} .'
+                .format(dockerfile=dockerfile, docker_tag=docker_tag))
+    cmds.append('docker push {docker_tag}'.format(docker_tag=docker_tag))
+
     logfile = '{name}-docker-build.log'.format(name=name)
     if os.path.exists(logfile):
       os.remove(logfile)
-    run_shell_and_log(cmds, logfile, cwd=gradle_root)
+    run_shell_and_log(cmds, logfile, cwd=cwd)
 
   @classmethod
   def __jar_build(cls, name, gradle_root):
