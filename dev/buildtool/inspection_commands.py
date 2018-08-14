@@ -79,6 +79,8 @@ from buildtool import (
     UnexpectedError,
     ResponseError)
 
+from google.cloud import storage
+
 
 def my_unicode_representer(self, data):
   return self.represent_str(data.encode('utf-8'))
@@ -625,6 +627,26 @@ class CollectArtifactVersions(CommandProcessor):
                             default_flow_style=False), path)
     return image_map
 
+  def collect_spin_versions(self):
+    options = self.options
+    if options.spin_credentials_path:
+      gcs_client = storage.Client.from_service_account_json(
+        options.spin_credentials_path)
+    else:
+      gcs_client = storage.Client()
+    spin_bucket = options.spin_bucket or None
+    bucket = gcs_client.get_bucket(spin_bucket)
+    blob_iterator = bucket.list_blobs(prefix='spin')
+    spin_blobs = [b.name for b in blob_iterator]
+    versions = [b.split('/')[1] for b in spin_blobs if len(b.split('/')) == 5]
+    path = os.path.join(self.get_output_dir(), 'spin_versions.yml')
+    logging.info('Writing spin versions to %s', path)
+    logging.info(',, versions: {}'.format(versions))
+    write_to_path(yaml.dump(versions,
+                            allow_unicode=True,
+                            default_flow_style=False), path)
+    return versions
+
   def collect_gce_image_versions(self):
     options = self.options
     project = options.publish_gce_image_project
@@ -665,6 +687,7 @@ class CollectArtifactVersions(CommandProcessor):
   def _do_command(self):
     pool = ThreadPool(16)
     bintray_jars, bintray_debians = self.collect_bintray_versions(pool)
+    spin_versions = self.collect_spin_versions()
     self.collect_gcb_versions(pool)
     self.collect_gce_image_versions()
     pool.close()
@@ -732,6 +755,12 @@ class CollectArtifactVersionsFactory(CommandFactory):
     self.add_argument(
         parser, 'publish_gce_image_project', defaults, None,
         help='The GCE project ot collect images from.')
+    self.add_argument(
+        parser, 'spin_bucket', defaults, None,
+        help='The bucket spin binaries are published to.')
+    self.add_argument(
+        parser, 'spin_credentials_path', defaults, None,
+        help='The credentials to use to authenticate with the bucket.')
 
 
 class AuditArtifactVersions(CommandProcessor):
@@ -796,6 +825,16 @@ class AuditArtifactVersions(CommandProcessor):
     with open(image_paths[0], 'r') as stream:
       self.__gce_image_versions = yaml.load(stream.read())
 
+  def __init_spin_versions_helper(self, base_path):
+    spin_versions_file = os.path.join(base_path,
+                                      'collect_artifact_versions',
+                                      'spin_versions.yml')
+    if not os.path.exists(spin_versions_file):
+      raise_and_log_error(ConfigError('Expected spin_version.yml file in %s',
+                                      os.path.join(base_path, 'collect_artifact_versions')))
+    with open(spin_versions_file, 'r') as stream:
+      self.__spin_versions = yaml.load(stream.read())
+
   def __extract_all_bom_versions(self, bom_map):
     result = set([])
     for versions in bom_map.values():
@@ -859,6 +898,7 @@ class AuditArtifactVersions(CommandProcessor):
     super(AuditArtifactVersions, self).__init__(factory, options, **kwargs)
     base_path = os.path.dirname(self.get_output_dir())
     self.__init_bintray_versions_helper(base_path)
+    self.__init_spin_versions_helper(base_path)
 
     min_version = options.min_audit_bom_version or '0.0.0'
     min_parts = min_version.split('.')
@@ -929,6 +969,8 @@ class AuditArtifactVersions(CommandProcessor):
     self.audit_package(
         'image',
         self.__gce_image_versions, self.__unused_gce_images)
+    self.audit_spin()
+    logging.info(',, unused spin versions: %s', self.__unused_spin_versions)
 
     def maybe_write_log(what, data):
       if not data:
@@ -978,6 +1020,31 @@ class AuditArtifactVersions(CommandProcessor):
     maybe_write_log('invalid_versions', self.__invalid_versions)
     maybe_write_log('invalid_releases', invalid_releases)
     maybe_write_log('unchecked_releases', unchecked_releases)
+    maybe_write_log('unused_spin_versions', self.__unused_spin_versions)
+    maybe_write_log('boms_missing_spin', self.__boms_missing_spin)
+
+  def audit_spin(self):
+    # Spin was released on this BOM version,
+    # naturally it wouldn't exist before this version.
+    SPIN_MIN_BOM_VERSION = SemanticVersion.make('version-1.9.0')
+    released_boms = self.__all_released_boms
+    logging.info(',, all released boms: %s', released_boms)
+    logging.info(',, all released boms for gate(?): %s', released_boms['gate'])
+    relevant_boms = [
+      b for b in released_boms if SemanticVersion.make('version-{}'.format(b['version'])) >= SPIN_MIN_BOM_VERSION
+    ]
+    logging.info(',, relevant boms: %s', relevant_boms)
+    gate_semvers = [SemanticVersion.make(b['gate']['version']) for b in relevant_boms]
+    logging.info(',, gate semvers: %s', gate_semvers)
+    spin_semvers = [SemanticVersion.make('version-{}'.format(s)) for s in self.__spin_versions]
+    logging.info(',, spin semvers: %s', spin_semvers)
+    self.__unused_spin_versions = []
+    for s in spin_semvers:
+      patch_diffs = [
+        s.most_significant_diff_index(g) == SemanticVersion.PATCH_INDEX for g in gate_semvers
+      ]
+      if not any(patch_diffs):
+        self.__unused_spin_versions.append(s.to_version())
 
   def most_recent_version(self, name, versions):
     """Find the most recent version built."""
